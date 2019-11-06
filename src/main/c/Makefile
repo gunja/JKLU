@@ -3,12 +3,14 @@
 
 all:   libsuperLUWrapper.so
 
-libsuperLUWrapper.so: edu_ufl_cise_klu_wrapper_SuperLUWrapper.o libsuperlu_mt_PTHREAD.a
-	gcc -shared -o $@ edu_ufl_cise_klu_wrapper_SuperLUWrapper.o  libsuperlu_mt_PTHREAD.a \
--Wl,--no-whole-archive  -Wl,-rpath,/usr/lib/x86_64-linux-gnu/ -L/usr/lib/x86_64-linux-gnu/  -lpthread -lm -lblas
+libsuperLUWrapper.so: edu_ufl_cise_klu_wrapper_SuperLUWrapper.o edu_ufl_cise_klu_wrapper_SuperMatrix.o
+	gcc -shared -o $@ $^ -Wl,-rpath,/usr/lib/x86_64-linux-gnu/ -L/usr/lib/x86_64-linux-gnu/ -lsuperlu
 
 edu_ufl_cise_klu_wrapper_SuperLUWrapper.o: edu_ufl_cise_klu_wrapper_SuperLUWrapper.c
-	gcc -shared -I"$(JAVA_HOME)/include" -I"$(JAVA_HOME)/include/linux" -D_LONGINT -I../../superlu-mt/SRC -fPIC -O3 -c $^ -o $@
+	gcc -I"$(JAVA_HOME)/include" -I"$(JAVA_HOME)/include/linux" -I/usr/include/superlu/ -fPIC -O2 -c $^ -o $@
+
+edu_ufl_cise_klu_wrapper_SuperMatrix.o: edu_ufl_cise_klu_wrapper_SuperMatrix.c
+	gcc -I"$(JAVA_HOME)/include" -I"$(JAVA_HOME)/include/linux" -I/usr/include/superlu/ -fPIC -O2 -c $^ -o $@
 
 .PHONY: clean
 clean:

@@ -207,16 +207,13 @@ public class LUtest {
         System.out.println(""); System.out.println("starting test with SuperLU native");
         long startTime = System.nanoTime();
 
-        SuperMatrix sparseMatrix = new SuperMatrix();
+
         Stype_t stype = new Stype_t();
         Dtype_t dtype = new Dtype_t();
         Mtype_t mtype = new Mtype_t();
-        double[] nzval = null;
-        int[] rowind = null;
-        int[] colptr = null;
-        SuperLUWrapper.dCreate_CompCol_Matrix(sparseMatrix, n, n, 0, nzval, rowind, colptr, stype, dtype, mtype);
+        superlu_options_t options = null;
 
-        //SparseMatrix sparseMatrix = CCSMatrix.zero(n, n);
+        SparseMatrix sparseMatrix = CCSMatrix.zero(n, n);
         System.out.println("Matrix instantiated time msec: "+ (System.nanoTime()-startTime)/1000000);
 
         startTime = System.nanoTime();
@@ -240,9 +237,12 @@ public class LUtest {
         System.out.println("Matrix initialized time msec: "+ (System.nanoTime()-startTime)/1000000);
         startTime = System.nanoTime();
 
-        //Ap= CCSMatrixWrap.getColumnPointers(sparseMatrix);
-        //Ai= CCSMatrixWrap.getRowIndices(sparseMatrix);
-        //Ax= CCSMatrixWrap.getValues(sparseMatrix);
+        Ap= CCSMatrixWrap.getColumnPointers(sparseMatrix);
+        Ai= CCSMatrixWrap.getRowIndices(sparseMatrix);
+        Ax= CCSMatrixWrap.getValues(sparseMatrix);
+
+        SuperMatrix superMatrixA = null;
+        superMatrixA = SuperLUWrapper.dCreateCompColMatrix(n, n,  Ax, Ai, Ap, stype, dtype, mtype);
 
 
         System.out.println("Retrieved CCS data time msec: "+ (System.nanoTime()-startTime)/1000000);
@@ -272,6 +272,18 @@ public class LUtest {
             System.out.printf("x [%d] = %g\n", i, b [i]) ;
 ////            assertEquals(i + 1.0, b [i], DELTA) ;
         }
+
+        int[] perm_c = new int[n];
+        int[] perm_r = new int[n];
+        SuperMatrix L = new SuperMatrix();
+        SuperMatrix U = new SuperMatrix();
+        SuperMatrix B = new SuperMatrix();
+        SuperLUStat_t stat = null;
+        Integer info = new Integer(0);
+        SuperLUWrapper.dgssv(options, superMatrixA, perm_c, perm_r,  L, U, B, stat, info);
+        //after that somehow get B->vector of solution
+        // TODO ^^^^^^
+
     }
 
     private static void short_superLU_wrapped_ccs_test()
@@ -350,7 +362,7 @@ public class LUtest {
         System.out.println("Retrieved CCS data time msec: "+ (System.nanoTime()-startTime)/1000000);
         startTime = System.nanoTime();
 
-        SuperLUWrapper.ccs_components_b_pdgssv(4, n,n, Ap, Ai, Ax, b);
+        SuperLUMTWrapper.ccs_components_b_pdgssv(4, n,n, Ap, Ai, Ax, b);
 
         System.out.println("Par superLU wrapped Klu solved time msec: "+ (System.nanoTime()-startTime)/1000000);
         //System.out.println("Peak memory:"+ Common.mempeak+" status "+Common.status);
@@ -527,7 +539,7 @@ public class LUtest {
 
         startTime = System.nanoTime();
 
-        SuperLUWrapper.ccs_components_b_pdgssv(4, n,n, myAp, myAi, myAx, myb);
+        SuperLUMTWrapper.ccs_components_b_pdgssv(4, n,n, myAp, myAi, myAx, myb);
 
         System.out.println("Par superLU wrapped Klu solved time msec: "+ (System.nanoTime()-startTime)/1000000);
         //System.out.println("Peak memory:"+ Common.mempeak+" status "+Common.status);
@@ -541,7 +553,7 @@ public class LUtest {
         //dump_matrix();
         //mtj_ccs_klu_test();
         //la4j_ccs_klu_test();
-        //superluwr_ccs_klu_test();
+        superluwr_ccs_klu_test();
         System.out.println("\nstarting test with SuperLU wrapped everything\n");
         String property = System.getProperty("java.library.path");
         StringTokenizer parser = new StringTokenizer(property, ";");
@@ -549,9 +561,9 @@ public class LUtest {
             System.err.println(parser.nextToken());
         }
         //short_superLU_wrapped_ccs_test();
-        //short_superLU_wrapped_ccs_test_par();
+        short_superLU_wrapped_ccs_test_par();
         //dump_matrix();
         //la4j_ccs_klu_test_rajat();
-        superLU_par_wrapped_ccs_test_rajat();
+        //superLU_par_wrapped_ccs_test_rajat();
     }
 }

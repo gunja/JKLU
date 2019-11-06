@@ -1,22 +1,23 @@
 #include "edu_ufl_cise_klu_wrapper_SuperLUWrapper.h"
 #include <stdio.h>
-//#include "slu_ddefs.h"
-#include "slu_mt_ddefs.h"
+#include "slu_ddefs.h"
 
 #include <time.h>
 
-JNIEXPORT void JNICALL Java_edu_ufl_cise_klu_wrapper_SuperLUWrapper_dCreate_1CompCol_1Matrix
-  (JNIEnv *env, jclass cls, jobject superMat, jint rows, jint cols, jint bum,
-	jdoubleArray arra, jintArray size, jintArray iArra, jobject ob, jobject ob2, jobject ob3) {
-	printf("Called %s\n", __func__ );
-	return;
-}
-
-JNIEXPORT void JNICALL Java_edu_ufl_cise_klu_wrapper_SuperLUWrapper_dGenXtrue
-  (JNIEnv *env, jclass cls, jint sz, jint sz2, jdoubleArray arra, jint sz3)
+JNIEXPORT jobject JNICALL Java_edu_ufl_cise_klu_wrapper_SuperLUWrapper_dCreateCompColMatrix
+  (JNIEnv *env, jclass cls, jint cols, jint rows, jdoubleArray nonZeroes, jintArray rowPtr, jintArray ColPtr, jobject stype, jobject dtype, jobject mtype)
 {
 	printf("Called %s\n", __func__ );
-	return;
+	//return NULL;
+    return (*env)->NewGlobalRef(env, NULL);
+}
+
+JNIEXPORT jdoubleArray JNICALL Java_edu_ufl_cise_klu_wrapper_SuperLUWrapper_dGenXtrue
+  (JNIEnv *env, jclass cls, jint sz, jint sz2, jint sz3)
+{
+	printf("Called %s\n", __func__ );
+	//return NULL;
+    return (*env)->NewGlobalRef(env, NULL);
 }
 
 JNIEXPORT void JNICALL Java_edu_ufl_cise_klu_wrapper_SuperLUWrapper_dFillRHS
@@ -54,8 +55,6 @@ JNIEXPORT void JNICALL Java_edu_ufl_cise_klu_wrapper_SuperLUWrapper_ccs_1compone
   (JNIEnv *env, jclass cld, jint rows, jint cols, jintArray colsPtrs, jintArray rowPointed,
 	jdoubleArray values, jdoubleArray b_vector)
 {
-return;
-#if 0
 	SuperMatrix A;
     SuperMatrix L;      /* factor L */
     SCformat *Lstore;
@@ -146,12 +145,14 @@ printf("All time = %f\n only solution = %f\n",
 	solve_stop.tv_sec - solve_start.tv_sec + 1e-9 * (solve_stop.tv_nsec - solve_start.tv_nsec)
 	);*/
 	return;
-#endif
 }
 
 JNIEXPORT void JNICALL Java_edu_ufl_cise_klu_wrapper_SuperLUWrapper_ccs_1components_1b_1pdgssv
   (JNIEnv *env, jclass cls, jint nproc, jint rows, jint cols, jintArray colsPtrs, jintArray rowPointed, jdoubleArray values, jdoubleArray b_vector)
-{   SuperMatrix   A;
+{
+return;
+#if 0
+   SuperMatrix   A;
      NCformat *Astore;
      double   *a;
      int_t      *asub, *xa;
@@ -209,18 +210,18 @@ int      nrhs, ldx, m, n, nnz;
 
  dCreate_CompCol_Matrix(&A, rows, cols, vals_size, values_double, rowsIntArray, colsIntArray, SLU_NC, SLU_D, SLU_GE);
     Astore = A.Store;
-    printf("Dimension " IFMT "x" IFMT "; # nonzeros " IFMT "\n", A.nrow, A.ncol, Astore->nnz);
+    printf("Dimension %d x %d; # nonzeros %d\n", A.nrow, A.ncol, Astore->nnz);
 dCreate_Dense_Matrix(&B, rows, 1,b_double, b_size, SLU_DN, SLU_D, SLU_GE);
 xact = doubleMalloc(n * nrhs);
     ldx = n;
     dGenXtrue(n, nrhs, xact, ldx);
-     if (!(perm_r = intMalloc(m))) SUPERLU_ABORT("Malloc fails for perm_r[].");
-        if (!(perm_c = intMalloc(n))) SUPERLU_ABORT("Malloc fails for perm_c[].");
+     if (!(perm_r = intMalloc(m))) USER_ABORT("Malloc fails for perm_r[].");
+        if (!(perm_c = intMalloc(n))) USER_ABORT("Malloc fails for perm_c[].");
 
             permc_spec = 1;
             get_perm_c(permc_spec, &A, perm_c);
 printf("calling pdgssv\n");
-            pdgssv(nproc, &A, perm_c, perm_r, &L, &U, &B, &info);
+            dgssv(&A, perm_c, perm_r, &L, &U, &B, &info);
           if ( info == 0 ) {
           printf("info is 0\n");
       	    dinf_norm_error(nrhs, &B, xact); /* Inf. norm of the error */
@@ -228,18 +229,18 @@ printf("calling pdgssv\n");
             memcpy(b_double,sol, b_size*sizeof(double));
             Lstore = (SCPformat *) L.Store;
         Ustore = (NCPformat *) U.Store;
-            printf("#NZ in factor L = " IFMT "\n", Lstore->nnz);
-            printf("#NZ in factor U = " IFMT "\n", Ustore->nnz);
-            printf("#NZ in L+U = " IFMT "\n", Lstore->nnz + Ustore->nnz - L.ncol);
+            printf("#NZ in factor L = %d\n", Lstore->nnz);
+            printf("#NZ in factor U = %d\n", Ustore->nnz);
+            printf("#NZ in L+U = %d\n", Lstore->nnz + Ustore->nnz - L.ncol);
 
         superlu_dQuerySpace(nproc, &L, &U, panel_size, &superlu_memusage);
-        printf("L\\U MB %.3f\ttotal MB needed %.3f\texpansions " IFMT "\n",
+        printf("L\\U MB %.3f\ttotal MB needed %.3f\texpansions %d\n",
                superlu_memusage.for_lu/1024/1024,
                superlu_memusage.total_needed/1024/1024,
                superlu_memusage.expansions);
 
         } else {
-            printf("info is " IFMT "\n", info);
+            printf("info is %d\n", info);
         }
 
             (*env)->ReleaseDoubleArrayElements(env, values, values_double, 0);
@@ -254,6 +255,7 @@ printf("calling pdgssv\n");
         SUPERLU_FREE (perm_c);
         Destroy_SuperMatrix_Store(&A);
         Destroy_SuperMatrix_Store(&B);
-        Destroy_SuperNode_SCP(&L);
-        Destroy_CompCol_NCP(&U);
+        Destroy_SuperNode_Matrix(&L);
+        Destroy_CompCol_Matrix(&U);
+#endif
 }

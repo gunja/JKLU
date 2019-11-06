@@ -14,6 +14,18 @@ public class SuperMatrix {
     private native int cols_native();
     private native int rows_native();
 
+    //not good since Java 9, but let's use it for time being
+    @Override
+    protected void finalize() throws Throwable {
+        try {
+             if (isInitialized) {
+                 close();
+                 // TODO clear resources
+             }
+        } finally {
+            super.finalize();
+        }
+    }
     public SuperMatrix(){
     }
 
