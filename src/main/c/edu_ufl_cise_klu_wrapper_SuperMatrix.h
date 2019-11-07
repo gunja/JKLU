@@ -47,6 +47,14 @@ JNIEXPORT jint JNICALL Java_edu_ufl_cise_klu_wrapper_SuperMatrix_cols_1native
 JNIEXPORT jint JNICALL Java_edu_ufl_cise_klu_wrapper_SuperMatrix_rows_1native
   (JNIEnv *, jobject);
 
+/*
+ * Class:     edu_ufl_cise_klu_wrapper_SuperMatrix
+ * Method:    dCreateCompColMatrix
+ * Signature: (II[D[I[ILedu/ufl/cise/klu/wrapper/Stype_t;Ledu/ufl/cise/klu/wrapper/Dtype_t;Ledu/ufl/cise/klu/wrapper/Mtype_t;)Ledu/ufl/cise/klu/wrapper/SuperMatrix;
+ */
+JNIEXPORT jobject JNICALL Java_edu_ufl_cise_klu_wrapper_SuperMatrix_dCreateCompColMatrix
+  (JNIEnv *, jclass, jint, jint, jdoubleArray, jintArray, jintArray, jobject, jobject, jobject);
+
 #ifdef __cplusplus
 }
 #endif

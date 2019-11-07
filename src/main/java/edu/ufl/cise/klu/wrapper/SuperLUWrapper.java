@@ -10,7 +10,7 @@ public class SuperLUWrapper {
     // rowind - array of row pointers
     // colptr - array of column pointers
     // stype, dtype and mtype are ignored (set internally to proper values
-    public static native  SuperMatrix dCreateCompColMatrix(int m, int n, double[] nzval, int[] rowind, int[] colptr, Stype_t stype, Dtype_t dtype, Mtype_t mtype);
+    //public static native  SuperMatrix dCreateCompColMatrix(int m, int n, double[] nzval, int[] rowind, int[] colptr, Stype_t stype, Dtype_t dtype, Mtype_t mtype);
     // options are ignored (set to default
     public static native void dgssv( superlu_options_t	options, SuperMatrix A, int[] perm_c, int[] perm_r, SuperMatrix	L,
                                      SuperMatrix U, SuperMatrix B, SuperLUStat_t stat, Integer info);

@@ -9,14 +9,6 @@ extern "C" {
 #endif
 /*
  * Class:     edu_ufl_cise_klu_wrapper_SuperLUWrapper
- * Method:    dCreateCompColMatrix
- * Signature: (II[D[I[ILedu/ufl/cise/klu/wrapper/Stype_t;Ledu/ufl/cise/klu/wrapper/Dtype_t;Ledu/ufl/cise/klu/wrapper/Mtype_t;)Ledu/ufl/cise/klu/wrapper/SuperMatrix;
- */
-JNIEXPORT jobject JNICALL Java_edu_ufl_cise_klu_wrapper_SuperLUWrapper_dCreateCompColMatrix
-  (JNIEnv *, jclass, jint, jint, jdoubleArray, jintArray, jintArray, jobject, jobject, jobject);
-
-/*
- * Class:     edu_ufl_cise_klu_wrapper_SuperLUWrapper
  * Method:    dgssv
  * Signature: (Ledu/ufl/cise/klu/wrapper/superlu_options_t;Ledu/ufl/cise/klu/wrapper/SuperMatrix;[I[ILedu/ufl/cise/klu/wrapper/SuperMatrix;Ledu/ufl/cise/klu/wrapper/SuperMatrix;Ledu/ufl/cise/klu/wrapper/SuperMatrix;Ledu/ufl/cise/klu/wrapper/SuperLUStat_t;Ljava/lang/Integer;)V
  */

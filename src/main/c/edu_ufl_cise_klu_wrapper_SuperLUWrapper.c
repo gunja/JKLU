@@ -4,14 +4,6 @@
 
 #include <time.h>
 
-JNIEXPORT jobject JNICALL Java_edu_ufl_cise_klu_wrapper_SuperLUWrapper_dCreateCompColMatrix
-  (JNIEnv *env, jclass cls, jint cols, jint rows, jdoubleArray nonZeroes, jintArray rowPtr, jintArray ColPtr, jobject stype, jobject dtype, jobject mtype)
-{
-	printf("Called %s\n", __func__ );
-	//return NULL;
-    return (*env)->NewGlobalRef(env, NULL);
-}
-
 JNIEXPORT jdoubleArray JNICALL Java_edu_ufl_cise_klu_wrapper_SuperLUWrapper_dGenXtrue
   (JNIEnv *env, jclass cls, jint sz, jint sz2, jint sz3)
 {

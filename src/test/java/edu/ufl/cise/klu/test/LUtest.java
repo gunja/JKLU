@@ -241,8 +241,7 @@ public class LUtest {
         Ai= CCSMatrixWrap.getRowIndices(sparseMatrix);
         Ax= CCSMatrixWrap.getValues(sparseMatrix);
 
-        SuperMatrix superMatrixA = null;
-        superMatrixA = SuperLUWrapper.dCreateCompColMatrix(n, n,  Ax, Ai, Ap, stype, dtype, mtype);
+        SuperMatrix superMatrixA = SuperMatrix.dCreateCompColMatrix(n, n,  Ax, Ai, Ap, stype, dtype, mtype);
 
 
         System.out.println("Retrieved CCS data time msec: "+ (System.nanoTime()-startTime)/1000000);

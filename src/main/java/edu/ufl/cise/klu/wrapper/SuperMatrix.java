@@ -29,6 +29,8 @@ public class SuperMatrix {
     public SuperMatrix(){
     }
 
+    public static native SuperMatrix dCreateCompColMatrix(int m, int n, double[] nzval, int[] rowind, int[] colptr, Stype_t stype, Dtype_t dtype, Mtype_t mtype);
+
     public void close(){
         if (isInitialized) {
             release_CompCol_Matrix(SuperMatrix_nativePtr);
