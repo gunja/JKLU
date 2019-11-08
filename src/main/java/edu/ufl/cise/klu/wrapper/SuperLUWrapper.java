@@ -12,13 +12,10 @@ public class SuperLUWrapper {
     // stype, dtype and mtype are ignored (set internally to proper values
     //public static native  SuperMatrix dCreateCompColMatrix(int m, int n, double[] nzval, int[] rowind, int[] colptr, Stype_t stype, Dtype_t dtype, Mtype_t mtype);
     // options are ignored (set to default
-    public static native void dgssv( superlu_options_t	options, SuperMatrix A, int[] perm_c, int[] perm_r, SuperMatrix	L,
-                                     SuperMatrix U, SuperMatrix B, SuperLUStat_t stat, Integer info);
+    public static native int dgssv( superlu_options_t	options, SuperMatrix A, int[] perm_c, int[] perm_r, SuperMatrix	L,
+                                     SuperMatrix U, SuperMatrix B, SuperLUStat_t stat);
     //for comparison of results
     public static native void ccs_components_b_dgssv( int rows, int cols, int[] colPointers, int[] rowPointers, double[] values, double[] b );
-
-
-
 
     public static native double[] dGenXtrue (int n, int nrhs, int Idx);
     public static native void dFillRHS (trans_t trans, int nrhs, double[] x, int ldx, SuperMatrix A, SuperMatrix B);

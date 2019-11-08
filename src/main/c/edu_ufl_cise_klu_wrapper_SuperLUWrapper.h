@@ -10,10 +10,10 @@ extern "C" {
 /*
  * Class:     edu_ufl_cise_klu_wrapper_SuperLUWrapper
  * Method:    dgssv
- * Signature: (Ledu/ufl/cise/klu/wrapper/superlu_options_t;Ledu/ufl/cise/klu/wrapper/SuperMatrix;[I[ILedu/ufl/cise/klu/wrapper/SuperMatrix;Ledu/ufl/cise/klu/wrapper/SuperMatrix;Ledu/ufl/cise/klu/wrapper/SuperMatrix;Ledu/ufl/cise/klu/wrapper/SuperLUStat_t;Ljava/lang/Integer;)V
+ * Signature: (Ledu/ufl/cise/klu/wrapper/superlu_options_t;Ledu/ufl/cise/klu/wrapper/SuperMatrix;[I[ILedu/ufl/cise/klu/wrapper/SuperMatrix;Ledu/ufl/cise/klu/wrapper/SuperMatrix;Ledu/ufl/cise/klu/wrapper/SuperMatrix;Ledu/ufl/cise/klu/wrapper/SuperLUStat_t;)I
  */
-JNIEXPORT void JNICALL Java_edu_ufl_cise_klu_wrapper_SuperLUWrapper_dgssv
-  (JNIEnv *, jclass, jobject, jobject, jintArray, jintArray, jobject, jobject, jobject, jobject, jobject);
+JNIEXPORT jint JNICALL Java_edu_ufl_cise_klu_wrapper_SuperLUWrapper_dgssv
+  (JNIEnv *, jclass, jobject, jobject, jintArray, jintArray, jobject, jobject, jobject, jobject);
 
 /*
  * Class:     edu_ufl_cise_klu_wrapper_SuperLUWrapper

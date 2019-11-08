@@ -6,8 +6,9 @@ public class SuperMatrix {
         System.loadLibrary("superLUWrapper");
     }
 
-    private boolean isInitialized = false;
-    private Object SuperMatrix_nativePtr = null;
+    public boolean isInitialized = false;
+    //TODO cover with setter/getter
+    public Object SuperMatrix_nativePtr = null;
     private native void set_native(int col, int row, double value);
     private native double get_native(int col, int row);
     private native void release_CompCol_Matrix(Object nativePtr);
@@ -20,7 +21,6 @@ public class SuperMatrix {
         try {
              if (isInitialized) {
                  close();
-                 // TODO clear resources
              }
         } finally {
             super.finalize();
@@ -29,12 +29,19 @@ public class SuperMatrix {
     public SuperMatrix(){
     }
 
+    public SuperMatrix(Object intra) {
+        isInitialized = true;
+        SuperMatrix_nativePtr = intra;
+    }
+
     public static native SuperMatrix dCreateCompColMatrix(int m, int n, double[] nzval, int[] rowind, int[] colptr, Stype_t stype, Dtype_t dtype, Mtype_t mtype);
+    public static native SuperMatrix dCreateDenseMatrix(int rows, int cols, double[] values, Stype_t stype, Dtype_t dtype, Mtype_t mtype);
 
     public void close(){
         if (isInitialized) {
             release_CompCol_Matrix(SuperMatrix_nativePtr);
             isInitialized = false;
+            SuperMatrix_nativePtr = null;
         }
     }
 
@@ -66,5 +73,6 @@ public class SuperMatrix {
         return 0;
     }
 
+    public boolean isInited() { return isInitialized;}
 
 }

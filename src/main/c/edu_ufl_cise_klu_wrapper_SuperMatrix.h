@@ -55,6 +55,14 @@ JNIEXPORT jint JNICALL Java_edu_ufl_cise_klu_wrapper_SuperMatrix_rows_1native
 JNIEXPORT jobject JNICALL Java_edu_ufl_cise_klu_wrapper_SuperMatrix_dCreateCompColMatrix
   (JNIEnv *, jclass, jint, jint, jdoubleArray, jintArray, jintArray, jobject, jobject, jobject);
 
+/*
+ * Class:     edu_ufl_cise_klu_wrapper_SuperMatrix
+ * Method:    dCreateDenseMatrix
+ * Signature: (II[DLedu/ufl/cise/klu/wrapper/Stype_t;Ledu/ufl/cise/klu/wrapper/Dtype_t;Ledu/ufl/cise/klu/wrapper/Mtype_t;)Ledu/ufl/cise/klu/wrapper/SuperMatrix;
+ */
+JNIEXPORT jobject JNICALL Java_edu_ufl_cise_klu_wrapper_SuperMatrix_dCreateDenseMatrix
+  (JNIEnv *, jclass, jint, jint, jdoubleArray, jobject, jobject, jobject);
+
 #ifdef __cplusplus
 }
 #endif

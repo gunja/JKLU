@@ -219,6 +219,8 @@ public class LUtest {
         startTime = System.nanoTime();
 
         b= new double[n];
+        double[] b_c= new double[n];
+        double[] b2_c= new double[n*2];
 
         Random rand = new Random();
         rand.setSeed(1212);
@@ -231,8 +233,9 @@ public class LUtest {
                 sparseMatrix.set(k,i,val);
                 sparseMatrix.set(i,i,rand.nextDouble());
             }
-
             b[i]=rand.nextDouble();
+            b_c[i] = b[i];
+            b2_c[2*i] = b[i]; b2_c[2*i+1]= b[i];
         }
         System.out.println("Matrix initialized time msec: "+ (System.nanoTime()-startTime)/1000000);
         startTime = System.nanoTime();
@@ -241,11 +244,13 @@ public class LUtest {
         Ai= CCSMatrixWrap.getRowIndices(sparseMatrix);
         Ax= CCSMatrixWrap.getValues(sparseMatrix);
 
-        SuperMatrix superMatrixA = SuperMatrix.dCreateCompColMatrix(n, n,  Ax, Ai, Ap, stype, dtype, mtype);
-
-
         System.out.println("Retrieved CCS data time msec: "+ (System.nanoTime()-startTime)/1000000);
         startTime = System.nanoTime();
+
+
+        SuperMatrix superMatrixA = SuperMatrix.dCreateCompColMatrix(n, n,  Ax, Ai, Ap, stype, dtype, mtype);
+        System.out.println("CreateCompColMatrix time msec: "+ (System.nanoTime()-startTime)/1000000);
+
 
         KLU_symbolic Symbolic;
         KLU_numeric Numeric;
@@ -267,7 +272,7 @@ public class LUtest {
 
         System.out.println("Klu solved time msec: "+ (System.nanoTime()-startTime)/1000000);
         System.out.println("Peak memory:"+ Common.mempeak+" status "+Common.status);
-        for (int i = 0 ; i < n ; i++) {
+        for (int i =n - 15 ; i < n ; i++) {
             System.out.printf("x [%d] = %g\n", i, b [i]) ;
 ////            assertEquals(i + 1.0, b [i], DELTA) ;
         }
@@ -276,12 +281,18 @@ public class LUtest {
         int[] perm_r = new int[n];
         SuperMatrix L = new SuperMatrix();
         SuperMatrix U = new SuperMatrix();
-        SuperMatrix B = new SuperMatrix();
+        SuperMatrix B = SuperMatrix.dCreateDenseMatrix(n, 1, b_c, stype, dtype, mtype);
         SuperLUStat_t stat = null;
-        Integer info = new Integer(0);
-        SuperLUWrapper.dgssv(options, superMatrixA, perm_c, perm_r,  L, U, B, stat, info);
+
+        startTime = System.nanoTime();
+        int info = SuperLUWrapper.dgssv(options, superMatrixA, perm_c, perm_r,  L, U, B, stat);
+        System.out.println("SuperLUWrapper.dgssv solved time msec: "+ (System.nanoTime()-startTime)/1000000);
+        System.out.println("Info after call is " + info);
         //after that somehow get B->vector of solution
         // TODO ^^^^^^
+        for(int i = B.rows() - 10; i < B.rows(); ++i) {
+            System.out.printf("B_dense [%d] = %g\n", i, B.get(0, i)) ;
+        }
 
     }
 
@@ -549,6 +560,12 @@ public class LUtest {
     }
 
     public static void main(String[] args) throws NoSuchFieldException, IllegalAccessException {
+
+
+         /*       Class c = Object.class;
+                String className = c.getName();
+                System.out.println("The fully-qualified name of the class is: " + className);
+        */
         //dump_matrix();
         //mtj_ccs_klu_test();
         //la4j_ccs_klu_test();
@@ -560,7 +577,7 @@ public class LUtest {
             System.err.println(parser.nextToken());
         }
         //short_superLU_wrapped_ccs_test();
-        short_superLU_wrapped_ccs_test_par();
+        //short_superLU_wrapped_ccs_test_par();
         //dump_matrix();
         //la4j_ccs_klu_test_rajat();
         //superLU_par_wrapped_ccs_test_rajat();

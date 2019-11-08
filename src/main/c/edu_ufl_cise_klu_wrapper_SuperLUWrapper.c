@@ -8,7 +8,7 @@ JNIEXPORT jdoubleArray JNICALL Java_edu_ufl_cise_klu_wrapper_SuperLUWrapper_dGen
   (JNIEnv *env, jclass cls, jint sz, jint sz2, jint sz3)
 {
 	printf("Called %s\n", __func__ );
-	//return NULL;
+	//TODO;
     return (*env)->NewGlobalRef(env, NULL);
 }
 
@@ -27,13 +27,113 @@ JNIEXPORT void JNICALL Java_edu_ufl_cise_klu_wrapper_SuperLUWrapper_get_1perm_1c
 	return;
 }
 
-JNIEXPORT void JNICALL Java_edu_ufl_cise_klu_wrapper_SuperLUWrapper_dgssv
-  (JNIEnv *env, jclass cls, jobjectArray objArra, jobject obj1, jintArray iArra,
-	jintArray iArra2, jobject obj2, jobject obj3, jobject obj4,
-	jobjectArray objArra2, jintArray iArra3)
+void static updateInternalFieldSM_L(JNIEnv *env, jobject SMJava, SuperMatrix* native) {
+    jclass matCLS = (*env)->FindClass(env, "edu/ufl/cise/klu/wrapper/SuperMatrix");
+    jfieldID fid = (*env)->GetFieldID(env, matCLS, "SuperMatrix_nativePtr", "Ljava/lang/Object;");
+    jfieldID fInited = (*env)->GetFieldID(env, matCLS, "isInitialized", "Z");
+    // if we were passed with null object - nowhere to store
+    // otherwise, delete previous object, and store new one
+    if( !(*env)->IsSameObject(env, SMJava, NULL) )
+    {
+        jobject intra = (*env)->GetObjectField(env, SMJava, fid);
+        if(!(*env)->IsSameObject(env, intra, NULL) ) {
+            SuperMatrix *oldL = (*env)->GetDirectBufferAddress(env, intra);
+            Destroy_SuperNode_Matrix(oldL);
+        }
+        intra = (*env)->NewDirectByteBuffer(env, native, sizeof(*native));
+        (*env)->SetObjectField(env, SMJava, fid, intra);
+        (*env)->SetBooleanField(env, SMJava, fInited, 1);
+    }
+}
+
+void static updateInternalFieldSM_U(JNIEnv *env, jobject SMJava, SuperMatrix* native) {
+    jclass matCLS = (*env)->FindClass(env, "edu/ufl/cise/klu/wrapper/SuperMatrix");
+    jfieldID fid = (*env)->GetFieldID(env, matCLS, "SuperMatrix_nativePtr", "Ljava/lang/Object;");
+    jfieldID fInited = (*env)->GetFieldID(env, matCLS, "isInitialized", "Z");
+    // if we were passed with null object - nowhere to store
+    // otherwise, delete previous object, and store new one
+    if( !(*env)->IsSameObject(env, SMJava, NULL) )
+    {
+        jobject intra = (*env)->GetObjectField(env, SMJava, fid);
+        if( !(*env)->IsSameObject(env, intra, NULL) ) {
+            SuperMatrix *oldL = (*env)->GetDirectBufferAddress(env, intra);
+            Destroy_CompCol_Matrix(oldL);
+        }
+        intra = (*env)->NewDirectByteBuffer(env, native, sizeof(*native));
+        (*env)->SetObjectField(env, SMJava, fid, intra);
+        (*env)->SetBooleanField(env, SMJava, fInited, 1);
+    }
+}
+// static
+/*
+* Class:     edu_ufl_cise_klu_wrapper_SuperLUWrapper
+* Method:    dgssv
+* Signature: (Ledu/ufl/cise/klu/wrapper/superlu_options_t;Ledu/ufl/cise/klu/wrapper/SuperMatrix;[I[ILedu/ufl/cise/klu/wrapper/SuperMatrix;Ledu/ufl/cise/klu/wrapper/SuperMatrix;Ledu/ufl/cise/klu/wrapper/SuperMatrix;Ledu/ufl/cise/klu/wrapper/SuperLUStat_t;Ljava/lang/Integer;)V
+*/
+JNIEXPORT int JNICALL Java_edu_ufl_cise_klu_wrapper_SuperLUWrapper_dgssv
+(JNIEnv *env, jclass SLUcls, jobject optionsIgnored, jobject A, jintArray permC, jintArray permR, jobject L, jobject U, jobject B, jobject stats)
 {
-	printf("Called %s\n", __func__ );
-	return;
+    jclass matCLS = (*env)->FindClass(env, "edu/ufl/cise/klu/wrapper/SuperMatrix");
+    jfieldID fid = (*env)->GetFieldID(env, matCLS, "SuperMatrix_nativePtr", "Ljava/lang/Object;");
+
+	//printf("Called %s\n", __func__ );
+	SuperMatrix  *A_, *L_, *U_, *B_;
+	int info;
+	SuperLUStat_t stat;
+
+
+	L_ = (SuperMatrix*)malloc( sizeof(SuperMatrix));
+	memset(L_, 0, sizeof(SuperMatrix));
+    U_ = (SuperMatrix*)malloc( sizeof(SuperMatrix));
+	memset(U_, 0, sizeof(SuperMatrix));
+	// B -matrix should be filled previously for us
+    //B_ = (SuperMatrix*)malloc( sizeof(SuperMatrix));
+	//memset(B_, 0, sizeof(SuperMatrix));
+	updateInternalFieldSM_L(env, L, L_);
+	updateInternalFieldSM_U(env, U, U_);
+
+	jobject intra = (*env)->GetObjectField(env, B, fid);
+	B_ = (*env)->GetDirectBufferAddress(env, intra);
+
+	intra = (*env)->GetObjectField(env, A, fid);
+    A_ = (*env)->GetDirectBufferAddress(env, intra);
+
+    superlu_options_t options;
+    set_default_options(&options);
+
+    // assume that permC and permR are already properly allocated
+    int internalPermutationC = 0;
+    int internalPermutationR = 0;
+    int *perm_c, *perm_r;
+
+    if( (*env)->IsSameObject(env, permC, NULL) ) {
+        internalPermutationC = 1;
+        perm_c = (int*)calloc(A_->ncol, sizeof(int));
+    } else {
+        perm_c = (*env)->GetIntArrayElements(env, permC, NULL);
+    }
+
+    if( (*env)->IsSameObject(env, permR, NULL) ) {
+        internalPermutationR = 1;
+        perm_r = (int*)calloc(A_->nrow, sizeof(int));
+    } else {
+        perm_r = (*env)->GetIntArrayElements(env, permR, NULL);
+    }
+
+    StatInit(&stat);
+    dgssv(&options, A_, perm_c, perm_r, L_, U_, B_, &stat, &info);
+
+    if(internalPermutationC) {
+        free(perm_c);
+    } else {
+        (*env)->ReleaseIntArrayElements(env, permC, perm_c, 0);
+    }
+    if(internalPermutationR) {
+        free(perm_r);
+    } else {
+        (*env)->ReleaseIntArrayElements(env, permR, perm_r, 0);
+    }
+	return info;
 }
 
 JNIEXPORT void JNICALL Java_edu_ufl_cise_klu_wrapper_SuperLUWrapper_dinf_1norm_1error
@@ -137,117 +237,4 @@ printf("All time = %f\n only solution = %f\n",
 	solve_stop.tv_sec - solve_start.tv_sec + 1e-9 * (solve_stop.tv_nsec - solve_start.tv_nsec)
 	);*/
 	return;
-}
-
-JNIEXPORT void JNICALL Java_edu_ufl_cise_klu_wrapper_SuperLUWrapper_ccs_1components_1b_1pdgssv
-  (JNIEnv *env, jclass cls, jint nproc, jint rows, jint cols, jintArray colsPtrs, jintArray rowPointed, jdoubleArray values, jdoubleArray b_vector)
-{
-return;
-#if 0
-   SuperMatrix   A;
-     NCformat *Astore;
-     double   *a;
-     int_t      *asub, *xa;
-     int_t      *perm_r; /* row permutations from partial pivoting */
-     int_t      *perm_c; /* column permutation vector */
-     SuperMatrix   L;       /* factor L */
-     SCPformat *Lstore;
-     SuperMatrix   U;       /* factor U */
-     NCPformat *Ustore;
-     SuperMatrix   B;
-int      nrhs, ldx, m, n, nnz;
-    int_t info;
-
-    int_t      panel_size, relax, maxsup;
-    int_t      permc_spec;
-    trans_t  trans;
-    double   *xact, *rhs;
-    superlu_memusage_t   superlu_memusage;
-    int i;
-
-    trans             = NOTRANS;
-        n                 = 1000;
-        panel_size        = 8; sp_ienv(1);
-        relax             = 1; sp_ienv(2);
-        maxsup            = 200; sp_ienv(3);
-    jsize vals_size, cols_size, row_size, b_size;
-
-    fprintf(stderr, "Called %s\n", __func__ );
-    vals_size = (*env)->GetArrayLength(env, values);
-    cols_size = (*env)->GetArrayLength(env, colsPtrs);
-    row_size = (*env)->GetArrayLength(env, rowPointed);
-    b_size = (*env)->GetArrayLength(env, b_vector);
-
-    nnz = vals_size;
-    m = rows;
-    n = cols;
-    nrhs = 1;
-
-    jdouble *values_double = (*env)->GetDoubleArrayElements(env, values, 0);
-    jint *rows_int = (*env)->GetIntArrayElements(env, rowPointed, 0);
-    jint *cols_int = (*env)->GetIntArrayElements(env, colsPtrs, 0);
-    jdouble *b_double = (*env)->GetDoubleArrayElements(env, b_vector, 0);
-
-    int_t *rowsIntArray = (int_t*)calloc(row_size, sizeof(int_t));
-    int_t *colsIntArray = (int_t*)calloc(cols_size, sizeof(int_t));
-    for (i=0; i < row_size; ++i) {
-        rowsIntArray[i] = rows_int[i];
-    }
-    for (i=0; i < cols_size; ++i) {
-        colsIntArray[i] = cols_int[i];
-    }
-    (*env)->ReleaseIntArrayElements(env, rowPointed, rows_int, 0);
-    (*env)->ReleaseIntArrayElements(env, colsPtrs, cols_int, 0);
-    
-
- dCreate_CompCol_Matrix(&A, rows, cols, vals_size, values_double, rowsIntArray, colsIntArray, SLU_NC, SLU_D, SLU_GE);
-    Astore = A.Store;
-    printf("Dimension %d x %d; # nonzeros %d\n", A.nrow, A.ncol, Astore->nnz);
-dCreate_Dense_Matrix(&B, rows, 1,b_double, b_size, SLU_DN, SLU_D, SLU_GE);
-xact = doubleMalloc(n * nrhs);
-    ldx = n;
-    dGenXtrue(n, nrhs, xact, ldx);
-     if (!(perm_r = intMalloc(m))) USER_ABORT("Malloc fails for perm_r[].");
-        if (!(perm_c = intMalloc(n))) USER_ABORT("Malloc fails for perm_c[].");
-
-            permc_spec = 1;
-            get_perm_c(permc_spec, &A, perm_c);
-printf("calling pdgssv\n");
-            dgssv(&A, perm_c, perm_r, &L, &U, &B, &info);
-          if ( info == 0 ) {
-          printf("info is 0\n");
-      	    dinf_norm_error(nrhs, &B, xact); /* Inf. norm of the error */
-            double *sol = (double*) ((DNformat*) B.Store)->nzval;
-            memcpy(b_double,sol, b_size*sizeof(double));
-            Lstore = (SCPformat *) L.Store;
-        Ustore = (NCPformat *) U.Store;
-            printf("#NZ in factor L = %d\n", Lstore->nnz);
-            printf("#NZ in factor U = %d\n", Ustore->nnz);
-            printf("#NZ in L+U = %d\n", Lstore->nnz + Ustore->nnz - L.ncol);
-
-        superlu_dQuerySpace(nproc, &L, &U, panel_size, &superlu_memusage);
-        printf("L\\U MB %.3f\ttotal MB needed %.3f\texpansions %d\n",
-               superlu_memusage.for_lu/1024/1024,
-               superlu_memusage.total_needed/1024/1024,
-               superlu_memusage.expansions);
-
-        } else {
-            printf("info is %d\n", info);
-        }
-
-            (*env)->ReleaseDoubleArrayElements(env, values, values_double, 0);
-            (*env)->ReleaseDoubleArrayElements(env, b_vector, b_double, 0);
-            //(*env)->ReleaseIntArrayElements(env, rowPointed, rows_int, 0);
-            //(*env)->ReleaseIntArrayElements(env, colsPtrs, cols_int, 0);
-    free(rowsIntArray);
-    free(colsIntArray);
-
-        SUPERLU_FREE (xact);
-        SUPERLU_FREE (perm_r);
-        SUPERLU_FREE (perm_c);
-        Destroy_SuperMatrix_Store(&A);
-        Destroy_SuperMatrix_Store(&B);
-        Destroy_SuperNode_Matrix(&L);
-        Destroy_CompCol_Matrix(&U);
-#endif
 }
