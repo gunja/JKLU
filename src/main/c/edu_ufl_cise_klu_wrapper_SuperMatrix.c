@@ -55,8 +55,29 @@ JNIEXPORT void JNICALL Java_edu_ufl_cise_klu_wrapper_SuperMatrix_release_1CompCo
   (JNIEnv *env, jobject obj, jobject mat)
 {
     SuperMatrix *A = ( SuperMatrix *) (*env)->GetDirectBufferAddress(env, mat);
+
+typedef enum {
+    SLU_NC,    /* column-wise, no supernode */
+    SLU_NCP,   /* column-wise, column-permuted, no supernode 
+                  (The consecutive columns of nonzeros, after permutation,
+		   may not be stored  contiguously.) */
+    SLU_NR,    /* row-wize, no supernode */
+    SLU_SC,    /* column-wise, supernode */
+    SLU_SCP,   /* supernode, column-wise, permuted */    
+    SLU_SR,    /* row-wise, supernode */
+    SLU_DN,     /* Fortran style column-wise storage for dense matrix */
+    SLU_NR_loc  /* distributed compressed row format  */ 
+} Stype_t;
+
     //Destroy_SuperMatrix_Store(A);
-    Destroy_CompCol_Matrix(A);
+    if (A->Stype == SLU_DN || A->Stype == SLU_NC || A->Stype == SLU_NCP ||
+            A->Stype == SLU_NR || A->Stype == SLU_NR_loc) {
+	    Destroy_CompCol_Matrix(A);
+    }
+    if( A->Stype == SLU_SR || A->Stype ==  SLU_SC ||  A->Stype ==SLU_SCP ) {
+        Destroy_SuperNode_Matrix(A);
+    }
+    free(A);
     return;
 }
 
